@@ -31,7 +31,7 @@ export function ReadOrListen() {
     return selectedWords.includes(word);
   }
 
-  function removeWordSelected(word: string) {
+  function removerWordSelected(word: string) {
     const selectedWordsFiltered = selectedWords.filter((item) => item !== word);
 
     setSelectedWords(selectedWordsFiltered);
@@ -59,7 +59,9 @@ export function ReadOrListen() {
 
         <div className="mt-1 flex flex-wrap gap-2">
           {selectedWords.map((word) => (
-            <Tag key={word}>{word}</Tag>
+            <Tag handleClick={() => removerWordSelected(word)} key={word}>
+              {word}
+            </Tag>
           ))}
         </div>
 
