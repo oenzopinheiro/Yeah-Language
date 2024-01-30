@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import { SpeakerSimpleHigh } from "@phosphor-icons/react/dist/ssr";
 
@@ -20,11 +20,53 @@ const words = [
   "kangaroo",
 ];
 
+interface AddStartProps {
+  containerRefPosition: DOMRect;
+  wordRefPosition: DOMRect;
+  wordRef: HTMLDivElement;
+  word: string;
+}
+
 export function ReadOrListen() {
   const [selectedWords, setSelectedWords] = useState<string[]>([]);
+  const containerRef = useRef<HTMLHRElement | null>(null);
+  const wordsRef = useRef<(HTMLDivElement | null)[]>([]);
 
-  function handleSelectedWord(word: string) {
-    setSelectedWords([...selectedWords, word]);
+  function updateSelectedWord(word: string, wordRef: HTMLDivElement) {
+    setTimeout(() => {
+      setSelectedWords([...selectedWords, word]);
+      wordRef.style;
+    }, 500);
+  }
+
+  function addStart({
+    containerRefPosition,
+    wordRefPosition,
+    wordRef,
+    word,
+  }: AddStartProps) {
+    const y =
+      wordRefPosition.y - containerRefPosition.y + wordRefPosition.height + 6;
+
+    const x = wordRefPosition.x - containerRefPosition.x;
+
+    wordRef.style.transform = `translate(-${x}px, -${y}px)`;
+    updateSelectedWord(word, wordRef);
+  }
+
+  function handleSelectedWord(word: string, index: number) {
+    if (!containerRef.current) return;
+    if (!wordsRef.current) return;
+
+    const containerRefPosition = containerRef.current.getBoundingClientRect();
+
+    const wordRef = wordsRef.current[index];
+
+    if (!wordRef) return;
+
+    const wordRefPosition = wordRef.getBoundingClientRect();
+
+    addStart({ containerRefPosition, wordRefPosition, wordRef, word });
   }
 
   function verifyWordSelected(word: string): boolean {
@@ -65,13 +107,38 @@ export function ReadOrListen() {
           ))}
         </div>
 
-        <hr className="border-2 mt-1" />
+        <hr className="border-2 mt-1" ref={containerRef} />
 
         <div className="flex flex-wrap gap-2 mt-7">
-          {words.map((word) => (
-            <Tag key={word} handleClick={() => handleSelectedWord(word)}>
-              {word}
-            </Tag>
+          {words.map((word, index) => (
+            <div key={word}>
+              <div
+                ref={(element) => {
+                  if (!element) return;
+
+                  wordsRef.current.push(element);
+                }}
+                className="transition-all duration-500"
+              >
+                <Tag
+                  selected={verifyWordSelected(word)}
+                  handleClick={() => handleSelectedWord(word, index)}
+                >
+                  {word}
+                </Tag>
+              </div>
+              <div
+                data-disabled={verifyWordSelected(word)}
+                className="transition-all duration-500 data-[disabled=true]:block data-[disabled=false]:hidden"
+              >
+                <Tag
+                  selected={true}
+                  handleClick={() => handleSelectedWord(word, index)}
+                >
+                  {word}
+                </Tag>
+              </div>
+            </div>
           ))}
         </div>
       </div>
