@@ -27,15 +27,23 @@ interface AddStartProps {
   word: string;
 }
 
+interface AddEndProps {
+  wordRefPosition: DOMRect;
+  wordRef: HTMLDivElement;
+  word: string;
+  lastWordSelected: HTMLDivElement;
+}
+
 export function ReadOrListen() {
   const [selectedWords, setSelectedWords] = useState<string[]>([]);
   const containerRef = useRef<HTMLHRElement | null>(null);
   const wordsRef = useRef<(HTMLDivElement | null)[]>([]);
+  const wordsSelectedRef = useRef<(HTMLDivElement | null)[]>([]);
 
   function updateSelectedWord(word: string, wordRef: HTMLDivElement) {
     setTimeout(() => {
       setSelectedWords([...selectedWords, word]);
-      wordRef.style;
+      wordRef.style.display = "none";
     }, 500);
   }
 
@@ -54,6 +62,33 @@ export function ReadOrListen() {
     updateSelectedWord(word, wordRef);
   }
 
+  function addEnd({
+    wordRefPosition,
+    wordRef,
+    word,
+    lastWordSelected,
+  }: AddEndProps) {
+    const lastWordSelectedPosition = lastWordSelected.getBoundingClientRect();
+
+    let x =
+      wordRefPosition.x -
+      lastWordSelectedPosition.x +
+      (lastWordSelectedPosition.width + 8);
+
+    let y = wordRefPosition.y - lastWordSelectedPosition.y;
+
+    let translate = `translate(-${x}px, -${y}px)`;
+
+    console.log(x);
+
+    if (x < 0) {
+      translate = `translate(${-1 * x}px, ${-1 * y}px)`;
+    }
+
+    wordRef.style.transform = translate;
+    updateSelectedWord(word, wordRef);
+  }
+
   function handleSelectedWord(word: string, index: number) {
     if (!containerRef.current) return;
     if (!wordsRef.current) return;
@@ -66,7 +101,22 @@ export function ReadOrListen() {
 
     const wordRefPosition = wordRef.getBoundingClientRect();
 
-    addStart({ containerRefPosition, wordRefPosition, wordRef, word });
+    if (selectedWords.length == 0) {
+      addStart({ containerRefPosition, wordRefPosition, wordRef, word });
+      return;
+    }
+
+    const lastWordSelected =
+      wordsSelectedRef.current[wordsSelectedRef.current.length - 1];
+
+    if (!lastWordSelected) return;
+
+    addEnd({
+      wordRefPosition,
+      wordRef,
+      word,
+      lastWordSelected,
+    });
   }
 
   function verifyWordSelected(word: string): boolean {
@@ -99,11 +149,18 @@ export function ReadOrListen() {
         </div>
         <hr className="border-2" />
 
-        <div className="mt-1 flex flex-wrap gap-2">
+        <div className="mt-1 flex flex-wrap gap-2 min-h-12">
           {selectedWords.map((word) => (
-            <Tag handleClick={() => removerWordSelected(word)} key={word}>
-              {word}
-            </Tag>
+            <div
+              key={word}
+              ref={(element) => {
+                if (!element) return;
+
+                wordsSelectedRef.current.push(element);
+              }}
+            >
+              <Tag handleClick={() => removerWordSelected(word)}>{word}</Tag>
+            </div>
           ))}
         </div>
 
