@@ -72,7 +72,7 @@ export function ReadOrListen() {
 
     let x =
       wordRefPosition.x -
-      lastWordSelectedPosition.x +
+      lastWordSelectedPosition.x -
       (lastWordSelectedPosition.width + 8);
 
     let y = wordRefPosition.y - lastWordSelectedPosition.y;
