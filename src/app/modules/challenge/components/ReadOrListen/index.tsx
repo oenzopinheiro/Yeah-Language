@@ -1,10 +1,11 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { SpeakerSimpleHigh } from "@phosphor-icons/react/dist/ssr";
 
 import { Tag } from "../Tag";
+import { Chat } from "../../models/chat";
 
 const words = [
   "apple",
@@ -20,29 +21,86 @@ const words = [
   "kangaroo",
 ];
 
+interface ReadOrListenProps {
+  chat: Chat;
+  speak: (text: string, rate?: number) => void;
+  handleSelectedSentence: (selectedSentence: string) => void;
+}
+
+interface RandomWords {
+  id: string;
+  word: string;
+}
+
+interface Sentence extends Chat {
+  randomWords: RandomWords[];
+}
+
 interface AddStartProps {
   containerRefPosition: DOMRect;
   wordRefPosition: DOMRect;
   wordRef: HTMLDivElement;
-  word: string;
+  wordItem: RandomWords;
 }
 
 interface AddEndProps {
   wordRefPosition: DOMRect;
   wordRef: HTMLDivElement;
-  word: string;
+  wordItem: RandomWords;
   lastWordSelected: HTMLDivElement;
 }
 
-export function ReadOrListen() {
-  const [selectedWords, setSelectedWords] = useState<string[]>([]);
+export function ReadOrListen({
+  chat,
+  speak,
+  handleSelectedSentence,
+}: ReadOrListenProps) {
+  const [selectedWords, setSelectedWords] = useState<RandomWords[]>([]);
+  const [sentence, setSentence] = useState<Sentence>({} as Sentence);
   const containerRef = useRef<HTMLHRElement | null>(null);
   const wordsRef = useRef<(HTMLDivElement | null)[]>([]);
   const wordsSelectedRef = useRef<(HTMLDivElement | null)[]>([]);
 
-  function updateSelectedWord(word: string, wordRef: HTMLDivElement) {
+  useEffect(() => {
+    if (!chat.id) return;
+    const randomWords = generateRandomWords(
+      chat?.portuguese + " " + chat?.randomPortuguese
+    );
+
+    const sentenceGenerated = {
+      ...chat,
+      randomWords,
+    };
+
+    setSentence(sentenceGenerated);
+  }, [chat]);
+
+  function generateSelectedWordsToSentence(value: RandomWords[]): string {
+    return selectedWords.map((value) => value.word).join(" ");
+  }
+
+  function generateRandomWords(sentenceValue: string): RandomWords[] {
+    if (!sentenceValue) return [];
+
+    const words = sentenceValue
+      .split(" ")
+      .sort(() => Math.random() - 0.5)
+      .map((word) => {
+        return {
+          id: crypto.randomUUID(),
+          word,
+        };
+      });
+
+    return words;
+  }
+
+  function updateSelectedWord(wordItem: RandomWords, wordRef: HTMLDivElement) {
     setTimeout(() => {
-      setSelectedWords([...selectedWords, word]);
+      const wordsSelected = [...selectedWords, wordItem];
+
+      setSelectedWords(wordsSelected);
+      handleSelectedSentence(generateSelectedWordsToSentence(wordsSelected));
       wordRef.style.display = "none";
     }, 500);
   }
@@ -51,7 +109,7 @@ export function ReadOrListen() {
     containerRefPosition,
     wordRefPosition,
     wordRef,
-    word,
+    wordItem,
   }: AddStartProps) {
     const y =
       wordRefPosition.y - containerRefPosition.y + wordRefPosition.height + 6;
@@ -59,13 +117,13 @@ export function ReadOrListen() {
     const x = wordRefPosition.x - containerRefPosition.x;
 
     wordRef.style.transform = `translate(-${x}px, -${y}px)`;
-    updateSelectedWord(word, wordRef);
+    updateSelectedWord(wordItem, wordRef);
   }
 
   function addEnd({
     wordRefPosition,
     wordRef,
-    word,
+    wordItem,
     lastWordSelected,
   }: AddEndProps) {
     const lastWordSelectedPosition = lastWordSelected.getBoundingClientRect();
@@ -86,10 +144,10 @@ export function ReadOrListen() {
     }
 
     wordRef.style.transform = translate;
-    updateSelectedWord(word, wordRef);
+    updateSelectedWord(wordItem, wordRef);
   }
 
-  function handleSelectedWord(word: string, index: number) {
+  function handleSelectedWord(wordItem: RandomWords, index: number) {
     if (!containerRef.current) return;
     if (!wordsRef.current) return;
 
@@ -102,7 +160,7 @@ export function ReadOrListen() {
     const wordRefPosition = wordRef.getBoundingClientRect();
 
     if (selectedWords.length == 0) {
-      addStart({ containerRefPosition, wordRefPosition, wordRef, word });
+      addStart({ containerRefPosition, wordRefPosition, wordRef, wordItem });
       return;
     }
 
@@ -114,17 +172,34 @@ export function ReadOrListen() {
     addEnd({
       wordRefPosition,
       wordRef,
-      word,
+      wordItem,
       lastWordSelected,
     });
   }
 
   function verifyWordSelected(word: string): boolean {
-    return selectedWords.includes(word);
+    return selectedWords.filter((item) => item.word === word).length > 0;
   }
 
-  function removerWordSelected(word: string) {
-    const selectedWordsFiltered = selectedWords.filter((item) => item !== word);
+  function removerWordSelected(wordItem: RandomWords) {
+    const selectedWordsFiltered = selectedWords.filter(
+      (item) => item.id !== wordItem.id
+    );
+
+    const wordIndex = sentence.randomWords.findIndex(
+      (word) => word.id === wordItem.id
+    );
+
+    const wordRef = wordsRef.current[wordIndex];
+
+    if (!wordRef) return;
+
+    wordRef.style.display = "block";
+    wordRef.style.transform = `translate(0px, 0px)`;
+
+    handleSelectedSentence(
+      generateSelectedWordsToSentence(selectedWordsFiltered)
+    );
 
     setSelectedWords(selectedWordsFiltered);
   }
@@ -139,12 +214,14 @@ export function ReadOrListen() {
         <div className="flex items-center gap-2">
           <Image src="/ana.svg" alt="Ana picture" height={169} width={114} />
           <div className="flex items-center gap-2 border-2 border-gray-300 py-[14px] px-[26px] rounded-2xl">
-            <SpeakerSimpleHigh
-              size={32}
-              className="text-blue-primary focus:text-gray-600"
-              weight="fill"
-            />
-            <span>Are you ana ?</span>
+            <button onClick={() => speak(sentence.english)}>
+              <SpeakerSimpleHigh
+                size={32}
+                className="text-blue-primary focus:text-gray-600"
+                weight="fill"
+              />
+            </button>
+            <span>{sentence.english}</span>
           </div>
         </div>
         <hr className="border-2" />
@@ -152,14 +229,17 @@ export function ReadOrListen() {
         <div className="mt-1 flex flex-wrap gap-2 min-h-12">
           {selectedWords.map((word) => (
             <div
-              key={word}
+              key={word.id}
               ref={(element) => {
-                if (!element) return;
+                if (!element || wordsSelectedRef.current.includes(element))
+                  return;
 
                 wordsSelectedRef.current.push(element);
               }}
             >
-              <Tag handleClick={() => removerWordSelected(word)}>{word}</Tag>
+              <Tag handleClick={() => removerWordSelected(word)}>
+                {word.word}
+              </Tag>
             </div>
           ))}
         </div>
@@ -167,32 +247,33 @@ export function ReadOrListen() {
         <hr className="border-2 mt-1" ref={containerRef} />
 
         <div className="flex flex-wrap gap-2 mt-7">
-          {words.map((word, index) => (
-            <div key={word}>
+          {sentence?.randomWords?.map((randomWord, index) => (
+            <div key={randomWord.id}>
               <div
                 ref={(element) => {
-                  if (!element) return;
+                  if (!element || wordsSelectedRef.current.includes(element))
+                    return;
 
                   wordsRef.current.push(element);
                 }}
                 className="transition-all duration-500"
               >
                 <Tag
-                  selected={verifyWordSelected(word)}
-                  handleClick={() => handleSelectedWord(word, index)}
+                  selected={verifyWordSelected(randomWord.word)}
+                  handleClick={() => handleSelectedWord(randomWord, index)}
                 >
-                  {word}
+                  {randomWord.word}
                 </Tag>
               </div>
               <div
-                data-disabled={verifyWordSelected(word)}
+                data-disabled={verifyWordSelected(randomWord.word)}
                 className="transition-all duration-500 data-[disabled=true]:block data-[disabled=false]:hidden"
               >
                 <Tag
                   selected={true}
-                  handleClick={() => handleSelectedWord(word, index)}
+                  handleClick={() => handleSelectedWord(randomWord, index)}
                 >
-                  {word}
+                  {randomWord.word}
                 </Tag>
               </div>
             </div>

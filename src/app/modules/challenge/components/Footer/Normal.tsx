@@ -1,6 +1,10 @@
 import { Button } from "@/app/modules/share/components/Button";
 
-export function Normal() {
+interface NormalProps {
+  handleCheck: () => void;
+}
+
+export function Normal({ handleCheck }: NormalProps) {
   return (
     <div className="max-w-5xl px-4 w-full mx-auto flex justify-between items-center h-full">
       <div className="w-36">
@@ -8,7 +12,9 @@ export function Normal() {
       </div>
 
       <div className="w-36">
-        <Button variant="primary">Check</Button>
+        <Button variant="primary" onClick={handleCheck}>
+          Check
+        </Button>
       </div>
     </div>
   );
