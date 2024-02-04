@@ -12,25 +12,29 @@ interface TemplateChallengeProps {
   sentences: Chat[];
 }
 
-export function TemplateChallenge({ sentences }: TemplateChallengeProps) {
+export function TemplateChallenge({
+  sentences: sentencesFromChat,
+}: TemplateChallengeProps) {
   const [sentence, setSentence] = useState<Chat>({} as Chat);
   const [footerVariant, setFooterVariant] = useState<FooterVariant>(
     FooterVariant.NORMAL
   );
 
   const [selectedSentence, setselectedSentence] = useState("");
+  const [sentences, setSentences] = useState<Chat[]>(sentencesFromChat);
 
   useEffect(() => {
-    console.log(sentences);
-
-    const choiceSentences =
-      sentences[Math.floor(Math.random() * sentences?.length)];
-    setSentence(choiceSentences);
+    getRandomSentence();
   }, [sentences]);
 
   useEffect(() => {
     createSynthesis();
-  });
+  }, []);
+
+  function getRandomSentence() {
+    const randomIndex = Math.floor(Math.random() * sentences.length);
+    const sentence = sentences[randomIndex];
+  }
 
   function createSynthesis() {
     const speechSynthesis =
@@ -62,10 +66,21 @@ export function TemplateChallenge({ sentences }: TemplateChallengeProps) {
   function checkCorrectSentence() {
     if (selectedSentence == sentence.portuguese) {
       setFooterVariant(FooterVariant.SUCCESS);
+      playAudio("success");
+      const newSentences = sentences.filter(
+        (sentenceItem) => sentence.id != sentence.id
+      );
+      setSentences(newSentences);
+
       return;
     }
 
     setFooterVariant(FooterVariant.ERROR);
+    playAudio("error");
+  }
+
+  function playAudio(name: string) {
+    new Audio(`/${name}.wav`).play();
   }
 
   return (
@@ -89,9 +104,13 @@ export function TemplateChallenge({ sentences }: TemplateChallengeProps) {
           <Footer.Normal handleCheck={checkCorrectSentence} />
         )}
 
-        {footerVariant == FooterVariant.SUCCESS && <Footer.Success />}
+        {footerVariant == FooterVariant.SUCCESS && (
+          <Footer.Success handleClick={getRandomSentence} />
+        )}
 
-        {footerVariant == FooterVariant.ERROR && <Footer.Error />}
+        {footerVariant == FooterVariant.ERROR && (
+          <Footer.Error handleClick={getRandomSentence} />
+        )}
       </Footer>
     </div>
   );

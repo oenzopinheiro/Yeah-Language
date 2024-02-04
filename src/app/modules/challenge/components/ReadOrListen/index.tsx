@@ -76,7 +76,7 @@ export function ReadOrListen({
   }, [chat]);
 
   function generateSelectedWordsToSentence(value: RandomWords[]): string {
-    return selectedWords.map((value) => value.word).join(" ");
+    return value.map((value) => value.word).join(" ");
   }
 
   function generateRandomWords(sentenceValue: string): RandomWords[] {

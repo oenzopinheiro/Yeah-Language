@@ -1,7 +1,11 @@
 import { Button } from "@/app/modules/share/components/Button";
 import { XCircle } from "@phosphor-icons/react/dist/ssr";
 
-export function Error() {
+interface ErrorProps {
+  handleClick: () => void;
+}
+
+export function Error({ handleClick }: ErrorProps) {
   return (
     <div className="max-w-5xl px-4 w-full mx-auto flex justify-between items-center h-full">
       <div className="flex items-center gap-3">
@@ -28,7 +32,9 @@ export function Error() {
       </div>
 
       <div className="w-36">
-        <Button variant="error">Continue</Button>
+        <Button variant="error" onClick={handleClick}>
+          Continue
+        </Button>
       </div>
     </div>
   );
