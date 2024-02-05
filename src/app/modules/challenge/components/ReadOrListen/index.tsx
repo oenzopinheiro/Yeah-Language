@@ -23,6 +23,7 @@ const words = [
 
 interface ReadOrListenProps {
   chat: Chat;
+  shouldCleanValues: boolean;
   speak: (text: string, rate?: number) => void;
   handleSelectedSentence: (selectedSentence: string) => void;
 }
@@ -52,6 +53,7 @@ interface AddEndProps {
 
 export function ReadOrListen({
   chat,
+  shouldCleanValues,
   speak,
   handleSelectedSentence,
 }: ReadOrListenProps) {
@@ -74,6 +76,15 @@ export function ReadOrListen({
 
     setSentence(sentenceGenerated);
   }, [chat]);
+
+  useEffect(() => {
+    if (!shouldCleanValues) return;
+
+    setSelectedWords([]);
+    setSentence({} as Sentence);
+    wordsRef.current = [];
+    wordsSelectedRef.current = [];
+  }, [shouldCleanValues]);
 
   function generateSelectedWordsToSentence(value: RandomWords[]): string {
     return value.map((value) => value.word).join(" ");

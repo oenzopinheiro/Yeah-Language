@@ -1,12 +1,13 @@
 "use client";
-
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { X } from "@phosphor-icons/react/dist/ssr";
 import { Button } from "../../share/components/Button";
 import { Footer, FooterVariant } from "../components/Footer";
 import { ProgressBar } from "../components/ProgressBar";
 import { ReadOrListen } from "../components/ReadOrListen";
 import { Chat } from "../models/chat";
-import { useEffect, useState } from "react";
 
 interface TemplateChallengeProps {
   sentences: Chat[];
@@ -22,6 +23,10 @@ export function TemplateChallenge({
 
   const [selectedSentence, setselectedSentence] = useState("");
   const [sentences, setSentences] = useState<Chat[]>(sentencesFromChat);
+  const [shouldCleanValues, setShouldCleanValues] = useState(false);
+  const [barPercentage, setBarPercentage] = useState(0);
+  const [errorsSentences, setErrorsSentences] = useState(3);
+  const router = useRouter();
 
   useEffect(() => {
     getRandomSentence();
@@ -34,7 +39,19 @@ export function TemplateChallenge({
   function getRandomSentence() {
     const randomIndex = Math.floor(Math.random() * sentences.length);
     const sentence = sentences[randomIndex];
+
     setSentence(sentence);
+    const percent =
+      (100 * (sentencesFromChat.length - sentences.length)) /
+      sentencesFromChat.length;
+    setBarPercentage(percent);
+
+    if (footerVariant != FooterVariant.NORMAL) {
+      setFooterVariant(FooterVariant.NORMAL);
+    }
+
+    setShouldCleanValues(false);
+    speak(sentence.english);
   }
 
   function createSynthesis() {
@@ -69,14 +86,24 @@ export function TemplateChallenge({
       setFooterVariant(FooterVariant.SUCCESS);
       playAudio("success");
       const newSentences = sentences.filter(
-        (sentenceItem) => sentence.id != sentence.id
+        (sentenceItem) => sentenceItem.id != sentence.id
       );
       setSentences(newSentences);
+      setShouldCleanValues(true);
 
       return;
     }
 
     setFooterVariant(FooterVariant.ERROR);
+    setShouldCleanValues(true);
+    const newError = errorsSentences - 1;
+
+    if (newError == 0) {
+      playAudio("game-over");
+      router.push("/challenges");
+    }
+
+    setErrorsSentences(newError);
     playAudio("error");
   }
 
@@ -90,12 +117,42 @@ export function TemplateChallenge({
         <div className="flex w-full gap-3 items-center">
           <X size={30} />
 
-          <ProgressBar progress={80} />
+          <ProgressBar progress={barPercentage} />
+
+          <div className="">
+            <div className="flex items-center">
+              <Image
+                data-error={errorsSentences === 0}
+                className="data-[error=true]:opacity-0 data-[error=true]:translate-y-10 duration-1000 transition-all ease-out"
+                src="/heart.svg"
+                alt="heart"
+                width={32}
+                height={32}
+              />
+              <Image
+                data-error={errorsSentences <= 1}
+                className="data-[error=true]:opacity-0 data-[error=true]:translate-y-10 duration-1000 transition-all ease-out"
+                src="/heart.svg"
+                alt="heart"
+                width={32}
+                height={32}
+              />
+              <Image
+                data-error={errorsSentences <= 2}
+                className="data-[error=true]:opacity-0 data-[error=true]:translate-y-10 duration-1000 transition-all ease-out"
+                src="/heart.svg"
+                alt="heart"
+                width={32}
+                height={32}
+              />
+            </div>
+          </div>
         </div>
       </div>
       <div className="max-w-5xl mx-auto mt-10 px-4 mb-14">
         <ReadOrListen
           chat={sentence}
+          shouldCleanValues={shouldCleanValues}
           speak={speak}
           handleSelectedSentence={handleSelectedSentence}
         />
@@ -110,7 +167,11 @@ export function TemplateChallenge({
         )}
 
         {footerVariant == FooterVariant.ERROR && (
-          <Footer.Error handleClick={getRandomSentence} />
+          <Footer.Error
+            correctSolution={sentence.portuguese}
+            yourSolution={selectedSentence}
+            handleClick={getRandomSentence}
+          />
         )}
       </Footer>
     </div>
