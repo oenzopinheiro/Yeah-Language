@@ -62,7 +62,7 @@ export function ReadOrListen({
   const wordsSelectedRef = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
-    if (!chat.id) return;
+    if (!chat?.id) return;
     const randomWords = generateRandomWords(
       chat?.portuguese + " " + chat?.randomPortuguese
     );

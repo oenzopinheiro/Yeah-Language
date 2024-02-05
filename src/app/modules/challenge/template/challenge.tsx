@@ -25,7 +25,7 @@ export function TemplateChallenge({
 
   useEffect(() => {
     getRandomSentence();
-  }, [sentences]);
+  }, []);
 
   useEffect(() => {
     createSynthesis();
@@ -34,6 +34,7 @@ export function TemplateChallenge({
   function getRandomSentence() {
     const randomIndex = Math.floor(Math.random() * sentences.length);
     const sentence = sentences[randomIndex];
+    setSentence(sentence);
   }
 
   function createSynthesis() {
