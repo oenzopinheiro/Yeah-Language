@@ -23,7 +23,19 @@ const button = tv({
         "shadow-button-error font-bold active:animate-animation-pulse",
       ],
     },
+    typeButton: {
+      outline: "w-full font-bold active:animate-animation-pulse",
+    },
   },
+
+  compoundVariants: [
+    {
+      variant: "error",
+      typeButton: "outline",
+      class:
+        "bg-transparent border-none shadow-none text-error-button hover:bg-transparent focus:bg-transparent",
+    },
+  ],
 
   defaultVariants: {
     variant: "primary",
@@ -34,6 +46,6 @@ interface ButtonProps
   extends ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof button> {}
 
-export function Button({ variant, ...props }: ButtonProps) {
-  return <button {...props} className={button({ variant: variant })} />;
+export function Button({ variant, typeButton, ...props }: ButtonProps) {
+  return <button {...props} className={button({ variant, typeButton })} />;
 }

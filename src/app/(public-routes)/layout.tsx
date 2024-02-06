@@ -3,15 +3,15 @@ import { getSession } from "@auth0/nextjs-auth0";
 import { ReactNode } from "react";
 
 interface PtivateLayoutProps {
-    children: ReactNode
+  children: ReactNode;
 }
 
 export default async function PtivateLayout({ children }: PtivateLayoutProps) {
-    const user = await getSession();
+  const user = await getSession();
 
-    if(user) {
-        redirect("/challenges")
-    }
+  if (user) {
+    redirect("/challenges");
+  }
 
-    return <>{children}</>
+  return <>{children}</>;
 }

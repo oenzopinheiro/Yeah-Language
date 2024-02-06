@@ -1,12 +1,15 @@
 "use client";
 
-import { Power } from "@phosphor-icons/react";
-import { Modal } from "../Modal";
 import { useState } from "react";
 import Image from "next/image";
+import { Power } from "@phosphor-icons/react";
+import { Modal } from "../Modal";
+import { useRouter } from "next/navigation";
+import { Button } from "../Button";
 
 export function LogOutButton() {
   const [open, setOpen] = useState(false);
+  const router = useState();
 
   return (
     <Modal open={open} onOpenChange={(isOpen) => setOpen(isOpen)}>
@@ -22,8 +25,10 @@ export function LogOutButton() {
             Are you sure you want to leave?
           </span>
 
-          <button>learn more!</button>
-          <a href="/api/auth/logout">leave</a>
+          <Button onClick={() => setOpen(false)}>Learn more</Button>
+          <Button variant="error" typeButton="outline">
+            <a href="/api/auth/logout">leave</a>
+          </Button>
         </div>
       </Modal.Content>
     </Modal>

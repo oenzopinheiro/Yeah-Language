@@ -8,6 +8,7 @@ import { Footer, FooterVariant } from "../components/Footer";
 import { ProgressBar } from "../components/ProgressBar";
 import { ReadOrListen } from "../components/ReadOrListen";
 import { Chat } from "../models/chat";
+import { Modal } from "../../share/components/Modal";
 
 interface TemplateChallengeProps {
   sentences: Chat[];
@@ -26,6 +27,7 @@ export function TemplateChallenge({
   const [shouldCleanValues, setShouldCleanValues] = useState(false);
   const [barPercentage, setBarPercentage] = useState(0);
   const [errorsSentences, setErrorsSentences] = useState(3);
+  const [open, setOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -88,6 +90,11 @@ export function TemplateChallenge({
       const newSentences = sentences.filter(
         (sentenceItem) => sentenceItem.id != sentence.id
       );
+
+      if (newSentences.length == 0) {
+        router.push("/challenges");
+      }
+
       setSentences(newSentences);
       setShouldCleanValues(true);
 
@@ -111,16 +118,52 @@ export function TemplateChallenge({
     new Audio(`/${name}.wav`).play();
   }
 
+  function skip() {
+    setShouldCleanValues(true);
+    getRandomSentence();
+    setTimeout(() => {}, 300);
+  }
+
   return (
     <div className="min-h-full w-full mx-aut mt-10 h-screen">
       <div className="max-w-5xl flex md:gap-5 justify-between items-center flex-1 mx-auto w-full px-4">
         <div className="flex w-full gap-3 items-center">
-          <X size={30} />
+          <Modal open={open} onOpenChange={setOpen}>
+            <Modal.Button>
+              <X size={30} />
+            </Modal.Button>
+            <Modal.Content>
+              <div className="flex flex-col items-center w-full gap-4">
+                <Image src="/bird.svg" alt="bird" height={120} width={120} />
+
+                <span className="text-center font-bold text-xl text-gray-800">
+                  Wait one minute!
+                </span>
+
+                <div className="text-center">
+                  <span className="text-center text-gray-sencondary font-medium">
+                    You`ve already picked up the pace... if you leave now,
+                    you``ll lose your progress
+                  </span>
+                </div>
+
+                <Button onClick={() => setOpen(false)}>Learn more!</Button>
+
+                <Button
+                  variant="error"
+                  typeButton="outline"
+                  onClick={() => router.push("/challenges")}
+                >
+                  leave
+                </Button>
+              </div>
+            </Modal.Content>
+          </Modal>
 
           <ProgressBar progress={barPercentage} />
 
           <div className="">
-            <div className="flex items-center">
+            <div className="hidden md:flex md:items-center">
               <Image
                 data-error={errorsSentences === 0}
                 className="data-[error=true]:opacity-0 data-[error=true]:translate-y-10 duration-1000 transition-all ease-out"
@@ -146,6 +189,18 @@ export function TemplateChallenge({
                 height={32}
               />
             </div>
+
+            <div className="md:hidden flex items-center gap-1">
+              <Image
+                data-error={errorsSentences === 0}
+                className="data-[error=true]:opacity-0 data-[error=true]:translate-y-10 duration-1000 transition-all ease-out"
+                src="/heart.svg"
+                alt="heart"
+                width={32}
+                height={32}
+              />
+              <span className="text-red-dark">{errorsSentences}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -159,7 +214,7 @@ export function TemplateChallenge({
       </div>
       <Footer variant={footerVariant}>
         {footerVariant == FooterVariant.NORMAL && (
-          <Footer.Normal handleCheck={checkCorrectSentence} />
+          <Footer.Normal handleCheck={checkCorrectSentence} skip={skip} />
         )}
 
         {footerVariant == FooterVariant.SUCCESS && (

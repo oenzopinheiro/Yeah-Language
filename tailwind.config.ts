@@ -26,12 +26,17 @@ const config: Config = {
           "0%": {opacity: "1"},
           "100%": {opacity: "0"},
         },
+        loading: {
+          "0%, 100%": {rotate: "0deg"},
+          "50%": {rotate:"0 4 3 -15deg"}
+        },
       },
       animation: {
       "overlay-fade-in": "overlay-fade-in 0.5s ease-in-out",
       "modal-content-fade-in": "modal-content-fade-in 0.5s ease-in-out",
       "modal-content-fade-out": "modal-content-fade-out 0.5s ease-in-out",
       "animation-pulse": " animation-pulse 0.5s linear",
+      loading: "loading 1s linear infinite",
     },
     boxShadow: {
       "button-primary": "0px 4px 0px 0px #489d26;",

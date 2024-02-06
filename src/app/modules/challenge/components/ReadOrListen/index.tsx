@@ -188,8 +188,8 @@ export function ReadOrListen({
     });
   }
 
-  function verifyWordSelected(word: string): boolean {
-    return selectedWords.filter((item) => item.word === word).length > 0;
+  function verifyWordSelected(id: string): boolean {
+    return selectedWords.filter((item) => item.id === id).length > 0;
   }
 
   function removerWordSelected(wordItem: RandomWords) {
@@ -277,7 +277,7 @@ export function ReadOrListen({
                 </Tag>
               </div>
               <div
-                data-disabled={verifyWordSelected(randomWord.word)}
+                data-disabled={verifyWordSelected(randomWord.id)}
                 className="transition-all duration-500 data-[disabled=true]:block data-[disabled=false]:hidden"
               >
                 <Tag

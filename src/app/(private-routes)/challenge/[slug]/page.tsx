@@ -6,6 +6,7 @@ import units from "@/data/units.json";
 import { useEffect, useRef, useState } from "react";
 import { generateSlug } from "@/tools/generateSlug";
 import { Chat } from "@/app/modules/challenge/models/chat";
+import { Loading } from "@/app/modules/share/components/Loading";
 
 export default function Challenge() {
   const [sentences, setSentences] = useState<Chat[]>([]);
@@ -38,7 +39,16 @@ export default function Challenge() {
       {sentences.length > 0 ? (
         <TemplateChallenge sentences={sentences} />
       ) : (
-        <span>loading...</span>
+        <div className="h-screen flex w-full m-auto max-w-[162px] items-center justify-center">
+          <div className="text-center">
+            <Loading></Loading>
+
+            <div className="text-center">
+              <h1 className="text-4xl font-bold text-gray-600">Loading...</h1>
+              <span className="mr-5">Wait a minute</span>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );
